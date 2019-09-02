@@ -61,6 +61,8 @@ include formatting_functions.pug
               .note= `${config.noDropoffSymbol} = No drop off available`
             if timetable.noServiceSymbolUsed
               .note= `${config.noServiceSymbol} = No service at this stop`
+            if timetable.noStopSymbolUsed
+              .note= `${config.noStopSymbol} = Service passes without stop`
             if timetable.interpolatedStopSymbolUsed
               .note= `${config.interpolatedStopSymbol} = Estimated time of arrival`
 
