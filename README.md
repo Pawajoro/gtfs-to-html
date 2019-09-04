@@ -43,9 +43,11 @@ Many transit agencies use `gtfs-to-html` to generate the schedule pages used on 
 * [NW Connector (Oregon)](http://www.nworegontransit.org/)
 * [Palo Verde Valley Transit Agency](http://pvvta.com/)
 * [Petaluma Transit](http://transit.cityofpetaluma.net/)
-* [Sonoma Country Transit](http://sctransit.com/)
+* [Santa Barbara Metropolitan Transit District](https://sbmtd.gov)
+* [Sonoma County Transit](http://sctransit.com/)
+* [Tulare County Area Transit](https://ridetcat.org/)
 
-Are you using `gtfs-to-html`? Let us know via opening a github issue or pull request if your agency is using this library.
+Are you using `gtfs-to-html`? Let us know via email (brendan@blinktag.com) or via opening a github issue or pull request if your agency is using this library.
 
 `gtfs-to-html` is used as an integral part of [`transit-custom-posts`](https://trilliumtransit.github.io/transit-custom-posts/) - a GTFS-optimized Wordpress plugin for transit websites.
 
@@ -72,19 +74,21 @@ If you are using this as a node module as part of an application, you can includ
     const config = require('config.json');
 
     mongoose.Promise = global.Promise;
-    mongoose.connect(config.mongoUrl, {useNewUrlParser: true});
+    mongoose.connect(config.mongoUrl, { useNewUrlParser: true, useCreateIndex: true });
 
     gtfsToHTML(config)
     .then(() => {
       console.log('HTML Generation Successful');
+      process.exit();
     })
     .catch(err => {
       console.error(err);
+      process.exit(1);
     });
 
 ## Configuration
 
-Copy `config-sample.json` to `config.json` and then add your projects configuration to `config.json`.
+Copy `config-sample.json` to `config.json` and then add your projects configuration to `config.json`. This is a JSON file, so ensure that your config.json is valid JSON.
 
     cp config-sample.json config.json
 
@@ -95,28 +99,39 @@ All files starting with `config*.json` are .gitignored - so you can create multi
 | [`agencies`](#agencies) | array | An array of GTFS files to be imported. |
 | [`beautify`](#beautify) | boolean | Whether or not to beautify the HTML output. |
 | [`coordinatePrecision`](#coordinateprecision) | integer | Number of decimal places to include in geoJSON map output. |
+| [`dataExpireAfterSeconds`](#dataExpireAfterSeconds) | integer | The number of seconds after which the data will be deleted from mongodb using a TTL index. |
 | [`dateFormat`](#dateFormat) | string | A string defining date format in moment.js style. |
 | [`dayShortStrings`](#dayShortStrings) | array of strings | An array defining contractions of weekdays names from Monday to Sunday. |
 | [`dayStrings`](#dayStrings) | array of strings | An array defining weekdays names from Monday to Sunday. |
 | [`defaultOrientation`](#defaultOrientation) | string | Specifies timetable orientation, when not mentioned in `timetables.txt` |
 | [`effectiveDate`](#effectivedate) | string | A date to print at the top of the timetable |
+| [`interpolatedStopSymbol`](#interpolatedStopSymbol) | string | The symbol used to indicate that a timepoint isn't fixed, but just interpolated. |
+| [`interpolatedStopText`](#interpolatedStopText) | string | The text used to describe a timepoint isn't fixed, but just interpolated. |
 | [`linkStopUrls`](#linkStopUrls) | boolean | Whether or not to hyperlink timetable stop names to the `stop_url` defined in `stops.txt`. |
 | [`mapboxAccessToken`](#mapboxaccesstoken) | string | The Mapbox access token for generating a map of the route. |
 | [`menuType`](#menuType) | string | The type of menu to use for selecting timetables on a timetable page. |
 | [`mongoUrl`](#mongoUrl) | string | The URL of the MongoDB database to import to. |
+| [`noDropoffSymbol`](#noDropoffSymbol) | string | The symbol used to indicate ta stop where no drop off is available. |
+| [`noDropoffText`](#noDropoffText) | string | The text used to describe a stop where no drop off is available. |
 | [`noHead`](#noHead) | boolean | Whether or not to skip the header and footer of the HTML document. |
-| [`noServiceSymbol`](#noservicesymbol) | string | The symbol used when a specific trip does not serve a specified stop. |
-| [`requestDropoffSymbol`](#requestdropoffsymbol) | string | The symbol used to indicate that riders must request a drop off at a stop. |
-| [`noDropoffSymbol`](#nodropoffsymbol) | string | The symbol used to indicate that no drop off is available at a stop. |
-| [`requestPickupSymbol`](#requestpickupsymbol) | string | The symbol used to indicate that riders must request a pickup at a stop. |
-| [`noPickupSymbol`](#nopickupsymbol) | string | The symbol used to indicate that no pickup is available at a stop. |
-| [`interpolatedStopSymbol`](#interpolatedStopSymbol) | string | The symbol used to indicate that a timepoint isn't fixed, but just interpolated. |
+| [`noServiceSymbol`](#noServiceSymbol) | string | The symbol used when a specific trip does not serve a specified stop. |
+| [`noServiceText`](#noServiceText) | string | The text used to describe a stop which is not served by a specific trip. |
+| [`noPickupSymbol`](#noPickupSymbol) | string | The symbol used to indicate a stop where no pickup is available. |
+| [`noPickupText`](#noPickupText) | string | The text used to describe a stop where no pickup is available. |
+| [`requestDropoffSymbol`](#requestDropoffSymbol) | string | The symbol used to indicate a stop where riders must request a drop off. |
+| [`requestDropoffText`](#requestDropoffText) | string | The text used to describe a stop where riders must request a drop off. |
+| [`requestPickupSymbol`](#requestPickupSymbol) | string | The symbol used to indicate a stop where riders must request a pickup. |
+| [`requestPickupText`](#requestPickupText) | string | The text used to describe a stop where riders must request a pickup. |
+| [`serviceNotProvidedOnText`](#serviceNotProvidedOnText) | string | The text used to label days where service is not provided. |
+| [`serviceProvidedOnText`](#serviceProvidedOnText) | string | The text used to label days where service is provided. |
+| [`showArrivalOnDifference`](#showArrivalOnDifference) | float | Defines a difference between departure and arrival, on which arrival column/row will be shown. |
 | [`showArrivalOnDifference`](#showArrivalOnDifference) | float | Defines a difference between departure and arrival, on which arrival column/row will be shown. |
 | [`showMap`](#showmap) | boolean | Whether or not to show a map of the route on the timetable. |
 | [`showOnlyTimepoint`](#showonlytimepoint) | boolean | Whether or not all stops should be shown, or only stops with a `timepoint` value in `stops.txt`. |
 | [`showRouteTitle`](#showroutetitle) | boolean | Whether or not to show the route title at the top of the timetable page. |
 | [`showStopCity`](#showstopcity) | boolean | Whether or not to show each stop's city. |
 | [`showStopDescription`](#showstopdescription) | boolean | Whether or not to show a stop description. |
+| [`skipImport`](#skipImport) | boolean | Whether or not to skip importing GTFS data into mongoDB. |
 | [`sortingAlgorithm`](#sortingAlgorithm) | string | Defines trip-sorting algorithm. |
 | [`templatePath`](#templatepath) | string | Path to custom pug template for rendering timetable. |
 | [`timeFormat`](#timeFormat) | string | A string defining time format in moment.js style. |
@@ -215,12 +230,20 @@ API along with your API token.
     "coordinatePrecision": 5
 ```
 
+### dataExpireAfterSeconds
+
+{Integer} The number of seconds after which the data will be deleted from mongodb using a [TTL index](https://docs.mongodb.com/manual/core/index-ttl/). Optional, if not specified then data will not be automatically deleted.
+
+```
+    "dataExpireAfterSeconds": 3600
+```
+
 ### dateFormat
 
 {String} A string defining date format in moment.js manner. Change it, when you want to customize date format shown in timetables
 
 ```
-    "dateFormat": "MMM D, YYYY",
+    "dateFormat": "MMM D, YYYY"
 ```
 
 ### daysShortStrings
@@ -228,7 +251,7 @@ API along with your API token.
 {Array \[String\]} An array of strings defining contractions of weekday names. Specify from Monday to Sunday. 
 
 ```
-    "daysShortStrings": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "daysShortStrings": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 ```
 
 
@@ -237,7 +260,7 @@ API along with your API token.
 {Array \[String\]} An array of strings defining contractions of weekday names. Specify from Monday to Sunday. 
 
 ```
-    "daysStrings": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+    "daysStrings": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 ```
 
 ### defaultOrientation
@@ -245,7 +268,7 @@ API along with your API token.
 {String} Specifies timetable orientation, when not mentioned in `timetables.txt`. For options see `timetables.txt` specification
 
 ```
-    "defaultOrientation": "vertical",
+    "defaultOrientation": "vertical"
 ```
 
 ### effectiveDate
@@ -254,6 +277,22 @@ API along with your API token.
 
 ```
     "effectiveDate": "July 8, 2015"
+```
+
+### interpolatedStopSymbol
+
+{String} The symbol used to indicate that a timepoint isn't fixed, but just interpolated. Defaults to `•`. To avoid having this symbol used in timetables, set it to `null`.
+
+```
+    "interpolatedStopSymbol": "•"
+```
+
+### interpolatedStopText
+
+{String} The text used to describe that a timepoint isn't fixed, but just interpolated. Defaults to `Estimated time of arrival`.
+
+```
+    "interpolatedStopText": "Estimated time of arrival"
 ```
 
 ### linkStopUrls
@@ -296,12 +335,44 @@ API along with your API token.
 }
 ```
 
+### noDropoffSymbol
+
+{String} The symbol used to indicate that no drop off is available at a stop. Defaults to `‡`. To avoid having this symbol used in timetables, set it to `null`.
+
+```
+    "noDropoffSymbol": "‡"
+```
+
+### noDropoffText
+
+{String} The text used to describe that no drop off is available at a stop. Defaults to `No drop off available`.
+
+```
+    "noDropoffText": "No drop off available"
+```
+
 ### noHead
 
 {Boolean} Whether or not to skip the HTML head and footer when generating the HTML. This is useful for creating embeddable HTML without `<html>`, `<head>` or `<body>` tags. Defaults to `false`.
 
 ```
     "noHead": false
+```
+
+### noPickupSymbol
+
+{String} The symbol used to indicate that no pickup is available at a stop. Defaults to `**`. To avoid having this symbol used in timetables, set it to `null`.
+
+```
+    "noPickupSymbol": "**"
+```
+
+### noPickupText
+
+{String} The text used to describe that no pickup is available at a stop. Defaults to `No pickup available`.
+
+```
+    "noPickupText": "No pickup available"
 ```
 
 ### noServiceSymbol
@@ -312,6 +383,14 @@ API along with your API token.
     "noServiceSymbol": "-"
 ```
 
+### noServiceText
+
+{String} The text used to describe when a specific trip does not serve a specified stop. Defaults to `No service at this stop`.
+
+```
+    "noServiceText": "No service at this stop"
+```
+
 ### requestDropoffSymbol
 
 {String} The symbol used to indicate that riders must request to be dropped off at a stop. Defaults to `†`. To avoid having this symbol used in timetables, set it to `null`.
@@ -320,12 +399,12 @@ API along with your API token.
     "requestDropoffSymbol": "†"
 ```
 
-### noDropoffSymbol
+### requestDropoffText
 
-{String} The symbol used to indicate that no drop off is available at a stop. Defaults to `‡`. To avoid having this symbol used in timetables, set it to `null`.
+{String} The text used to describe that riders must request to be dropped off at a stop. Defaults to `Must request drop off`.
 
 ```
-    "noDropoffSymbol": "‡"
+    "requestDropoffText": "Must request drop off"
 ```
 
 ### requestPickupSymbol
@@ -336,20 +415,28 @@ API along with your API token.
     "requestPickupSymbol": "***"
 ```
 
-### noPickupSymbol
+### requestPickupText
 
-{String} The symbol used to indicate that no pickup is available at a stop. Defaults to `**`. To avoid having this symbol used in timetables, set it to `null`.
-
-```
-    "requestPickupSymbol": "**"
-```
-
-### interpolatedStopSymbol
-
-{String} The symbol used to indicate that a timepoint isn't fixed, but just interpolated. Defaults to `•`. To avoid having this symbol used in timetables, set it to `null`.
+{String} The text used to describe that riders must request pickup at a stop. Defaults to `Request stop - call for pickup`.
 
 ```
-    "interpolatedStopSymbol": "•"
+    "requestPickupText": "Request stop - call for pickup"
+```
+
+### serviceNotProvidedOnText
+
+{String} The text used to label days where service is not provided. Defaults to `Service not provided on`.
+
+```
+    "serviceNotProvidedOnText": "Service not provided on"
+```
+
+### serviceProvidedOnText
+
+{String} The text used to label days where service is provided. Defaults to `Service provided on`.
+
+```
+    "serviceProvidedOnText": "Service provided on"
 ```
 
 ### showArrivalOnDifference
@@ -357,7 +444,7 @@ API along with your API token.
 {Float} Whether or not to show an arrival column/row in the timetable. It means, that if on at least one stop difference (stay on that stop) is **equal or greater** than specified here, the arrival time will be shown. Use `0` to show on each stop or `null` to supress for showing arrival at all.
 
 ```
-    "showArrivalOnDifference": 0.2,
+    "showArrivalOnDifference": 0.2
 ```
 
 ### showMap
@@ -402,6 +489,14 @@ If you'd rather just get all stops and route info as geoJSON, see [gtfs-to-geojs
     "showStopDescription": false
 ```
 
+### skipImport
+
+{Boolean} Whether or not to skip importing from GTFS into mongoDB. Useful for re-running the script if the GTFS data has not changed. Defaults to `false`.
+
+```
+    "skipImport": false
+```
+
 ### sortingAlgorithm
 
 {String} Defines trip-sorting algorithm. There is two main groups of algorithms full and simplified. 
@@ -413,7 +508,7 @@ Simplified algorithms sorts trips by one stoptime in every trip only. `common` f
 Prefer simplified algorithms, unless they don't give expected results.
 
 ```
-    "sortingAlgorithm": "common",
+    "sortingAlgorithm": "common"
 ```
 
 ### dateFormat
@@ -421,7 +516,7 @@ Prefer simplified algorithms, unless they don't give expected results.
 {String} A string defining time format in moment.js manner. Change it, when you want to customize time format shown in timetables.
 
 ```
-    "timeFormat": "h:mma",
+    "timeFormat": "h:mma"
 ```
 
 ### templatePath
@@ -429,7 +524,7 @@ Prefer simplified algorithms, unless they don't give expected results.
 {String} Path to a folder containing (pug)[https://pugjs.org/] template for rendering timetables. This is optional. Defaults to using the templates provided in `views/timetable`. All files within the `/views/custom` folder will be .gitignored, so you can copy the `views/timetable` folder to `views/custom/myagency` and make any modifications needed. Any custom views folder should conatain pug templates called `timetablepage.pug`, `timetablepage_full.pug`,  `overview.pug`, and `overview_full.pug`.
 
 ```
-    "templatePath": 'views/custom/my-agency/'
+    "templatePath": "views/custom/my-agency/"
 ```
 
 ### verbose
@@ -558,6 +653,34 @@ Skips importing GTFS into MongoDB. Useful if you are rerunning with an unchanged
 By default, node has a memory limit of 512 MB or 1 GB. If you have a very large GTFS file and want to use the option `showOnlyTimepoint` = `false` you may need to allocate more memory. Use the `max-old-space-size` option. For example to allocate 2 GB:
 
     node --max-old-space-size=2000 /usr/local/bin/gtfs-to-html
+
+## Logging
+
+If you want to route logs to a custom function, you can pass a function that takes a single `text` argument as `logFunction`. This con't be defined in `config.json` but instead passed in a config object to `gtfsToHtml()`.  For example:
+
+    const gtfsToHTML = require('gtfs-to-html');
+    const mongoose = require('mongoose');
+    
+    const config = {
+      mongoUrl: 'mongodb://localhost:27017/gtfs',
+      agencies: [
+        {
+          agency_key: 'county-connection',
+          url: 'http://countyconnection.com/GTFS/google_transit.zip',
+          exclude: [
+            'shapes'
+          ]
+        }
+      ],
+      logFunction: function(text) {
+        // Do something with the logs here, like save it or send it somewhere
+        console.log(text);
+      }
+    };
+
+    mongoose.connect(config.mongoUrl, { useNewUrlParser: true, useCreateIndex: true });
+
+    gtfsToHTML(config);
 
 ## Example Application / Previewing generated HTML
 

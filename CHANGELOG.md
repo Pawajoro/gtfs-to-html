@@ -4,6 +4,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.9] - 2019-08-12
+### Updated
+- Handle GTFS with no calendars.txt
+## Fixed
+- Logging when running in app mode
+- GTFS with no timetablepages
+
+## [0.17.8] - 2019-08-09
+### Updated
+- node-gtfs library
+- dependencies and node version
+
+## [0.17.7] - 2019-08-06
+### Added
+- `dataExpireAfterSeconds` config option
+### Fixed
+- Hide summarty table if using custom logging function
+
+## [0.17.6] - 2019-08-06
+### Added
+- Config option for custom logging function
+
+## [0.17.5] - 2019-07-19
+### Added
+- Support for `showStopCity` in vertical orientation timetables.
+
+## [0.17.4] - 2019-07-11
+### Added
+- Support HTML in `formatted_time` config
+
+### Fixed
+- Capitalize days of the week by default
+- Don't require a direction_id field to exist in trips.txt
+
+## [0.17.3] - 2019-06-07
+### Changed
+- Updates to mongo connection code
+
+### Fixed
+- Handle timetables with no matching calendars
+
+## [0.17.2] - 2019-05-20
+### Added
+- Add GTFS-to-HTML version to log.txt
+- Add version and date to timetable HTML as comment
+
+### Changed
+- Use config defaults when running as npm module
+- Style improvements for views without maps
+
+### Fixed
+- fix for convertRouteToTimetablePage
+- fix for log output
+
+## [0.17.1] - 2019-05-17
+### Changed
+- Update .gitignore
+
+## [0.17.0] - 2019-05-17
+### Added
+- More sorting algorithms (`sortingAlgorithm` config variable)
+- Both arrival and departure shown if difference specified (`showArrivalOnDifference` config variable)
+- Default timetable orientation (`defaultOrientation` config variable)
+- Configurable day strings (`daysStrings` and `daysShortStrings` config variables)
+- Configurable date and time formatting (`dateFormat` and `timeFormat` config variables)
+
 ## [0.16.3] - 2019-04-09
 ### Changed
 - Updated node-gtfs library to 1.8.5 to avoid query timeout on long imports
