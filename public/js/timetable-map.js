@@ -82,9 +82,9 @@ function createMap(id, geojson, routeColor) {
   map.addControl(new mapboxgl.NavigationControl());
 
   function createMarker() {
-    var el = document.createElement('div');
-    el.className = 'marker';
-    return el;
+    var element = document.createElement('div');
+    element.className = 'marker';
+    return element;
   }
 
   map.on('load', function () {
@@ -162,10 +162,10 @@ function createMap(id, geojson, routeColor) {
       map.getCanvas().style.cursor = '';
     });
 
-    map.on('click', function (e) {
+    map.on('click', function (event) {
       // Set bbox as 5px reactangle area around clicked point
-      var bbox = [[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]];
-      var features = map.queryRenderedFeatures(bbox, {layers: ['stops']});
+      var bbox = [[event.point.x - 5, event.point.y - 5], [event.point.x + 5, event.point.y + 5]];
+      var features = map.queryRenderedFeatures(bbox, { layers: ['stops'] });
 
       if (!features || features.length === 0) {
         return;
@@ -296,10 +296,10 @@ function createSystemMap(id, geojson) {
       filter: ['==', 'route_id', '']
     });
 
-    map.on('click', function (e) {
+    map.on('click', function (event) {
       // Set bbox as 5px reactangle area around clicked point
-      var bbox = [[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]];
-      var features = map.queryRenderedFeatures(bbox, {layers: routeLayerIds});
+      var bbox = [[event.point.x - 5, event.point.y - 5], [event.point.x + 5, event.point.y + 5]];
+      var features = map.queryRenderedFeatures(bbox, { layers: routeLayerIds });
 
       if (!features || features.length === 0) {
         return;
@@ -309,28 +309,28 @@ function createSystemMap(id, geojson) {
       var feature = features[0];
 
       new mapboxgl.Popup()
-        .setLngLat(e.lngLat)
+        .setLngLat(event.lngLat)
         .setHTML(formatRoutePopup(feature))
         .addTo(map);
     });
 
     function highlightRoutes(routeIds) {
       routeLayerIds.forEach(function (layerId) {
-        var lineOpacity = (routeIds.indexOf(layerId) === -1) ? 0.1 : 1;
+        var lineOpacity = (routeIds.includes(layerId)) ? 0.1 : 1;
         map.setPaintProperty(layerId, 'line-opacity', lineOpacity);
       });
 
       map.setFilter('routes-label', ['in', 'route_id'].concat(routeIds));
 
       var highlightedFeatures = geojson.features.reduce(function (memo, feature) {
-        if (routeIds.indexOf(feature.properties.route_id) !== -1) {
+        if (routeIds.includes(feature.properties.route_id)) {
           memo.push(feature);
         }
 
         return memo;
       }, []);
-      var zoomBounds = getBounds({features: highlightedFeatures});
-      map.fitBounds(zoomBounds, {padding: 20});
+      var zoomBounds = getBounds({ features: highlightedFeatures });
+      map.fitBounds(zoomBounds, { padding: 20 });
     }
 
     function unHighlightRoutes() {

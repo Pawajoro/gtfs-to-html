@@ -28,6 +28,10 @@ By generating future timetables and including dates in table metadata, your time
 
 `gtfs-to-html` uses the [`node-gtfs`](https://github.com/blinktaginc/node-gtfs) library to handle importing and querying GTFS data.
 
+## GTFS-to-HTML on the web
+
+You can now use `gtfs-to-html` without actually downloading any code or doing any configuration. [gtfstohtml.com](https://gtfstohtml.com) provides a web based interface for finding GTFS feeds for agenices, setting configuration and then generates a previewable and downloadable set of timetables.
+
 ## Current Usage
 Many transit agencies use `gtfs-to-html` to generate the schedule pages used on their websites, including:
 
@@ -36,16 +40,18 @@ Many transit agencies use `gtfs-to-html` to generate the schedule pages used on 
 * [County Connection (Contra Costa County, California)](https://countyconnection.com)
 * [El Dorado County](http://eldoradotransit.com/)
 * [Humboldt Transit Authority](http://hta.org/)
-* [Kings Area Rural Transit (KART)](http://mykartbus.com/)
+* [Kings Area Rural Transit (KART)](https://www.kartbus.org/)
 * [Madera County Connection](http://mcctransit.com/)
 * [Marin Transit](https://marintransit.org/)
 * [Mountain Transit](http://mountaintransit.org/)
+* [MVgo (Mountain View, CA)](https://mvgo.org/)
 * [NW Connector (Oregon)](http://www.nworegontransit.org/)
 * [Palo Verde Valley Transit Agency](http://pvvta.com/)
 * [Petaluma Transit](http://transit.cityofpetaluma.net/)
 * [Santa Barbara Metropolitan Transit District](https://sbmtd.gov)
 * [Sonoma County Transit](http://sctransit.com/)
 * [Tulare County Area Transit](https://ridetcat.org/)
+* [Worcester Regional Transit Authority](https://therta.com/)
 
 Are you using `gtfs-to-html`? Let us know via email (brendan@blinktag.com) or via opening a github issue or pull request if your agency is using this library.
 
@@ -74,7 +80,7 @@ If you are using this as a node module as part of an application, you can includ
     const config = require('config.json');
 
     mongoose.Promise = global.Promise;
-    mongoose.connect(config.mongoUrl, { useNewUrlParser: true, useCreateIndex: true });
+    mongoose.connect(config.mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
 
     gtfsToHTML(config)
     .then(() => {
@@ -133,9 +139,10 @@ All files starting with `config*.json` are .gitignored - so you can create multi
 | [`showStopCity`](#showstopcity) | boolean | Whether or not to show each stop's city. |
 | [`showStopDescription`](#showstopdescription) | boolean | Whether or not to show a stop description. |
 | [`skipImport`](#skipImport) | boolean | Whether or not to skip importing GTFS data into mongoDB. |
-| [`sortingAlgorithm`](#sortingAlgorithm) | string | Defines trip-sorting algorithm. |
+| [`sortingAlgorithm`](#sortingAlgorithm) | string | Defines the trip-sorting algorithm. |
 | [`templatePath`](#templatepath) | string | Path to custom pug template for rendering timetable. |
 | [`timeFormat`](#timeFormat) | string | A string defining time format in moment.js style. |
+| [`useParentStation`](#useParentStation) | boolean | Whether or not to use a stop's `parent_station`. |
 | [`verbose`](#verbose) | boolean | Whether or not to print output to the console. |
 | [`zipOutput`](#zipoutput) | boolean | Whether or not to zip the output into one zip file. |
 
@@ -508,13 +515,19 @@ If you'd rather just get all stops and route info as geoJSON, see [gtfs-to-geojs
 
 ### sortingAlgorithm
 
-{String} Defines trip-sorting algorithm. There is two main groups of algorithms full and simplified. 
+{String} Defines trip-sorting algorithm. There are two main groups of algorithms: simplified and full. 
 
-Full means, that sorting is done on every stop on that route. If there is no time specified, the trip will remain on its previous place. `beginning` sorts from beginning to end, `end` otherwise.
+Simplified algorithms sort trips by using one specific stop.
 
-Simplified algorithms sorts trips by one stoptime in every trip only. `common` fonds the coommon stop (used by all trips) and sorts by it (if not found `first` is used). `first` and `last` use first or last stop of every trip respectively.
+* `common` finds a coommon stop (used by all trips) (if not found `first` is used).
+* `first` uses the first stop stop on the longest trip
+* `last` uses the last stop on the longest trip
 
-Prefer simplified algorithms, unless they don't give expected results.
+Full algorithms sorting usinig every stop on the route. If there is no time specified, the trip will remain in its previous place.
+* `beginning` sorts from beginning to end
+* `end` sorts from end to beginning
+
+The default trip-sorting algorithm is `common`.
 
 ```
     "sortingAlgorithm": "common"
@@ -534,6 +547,14 @@ Prefer simplified algorithms, unless they don't give expected results.
 
 ```
     "templatePath": "views/custom/my-agency/"
+```
+
+### useParentStation
+
+{Boolean} Whether or not to use the `parent_station` of a stop, if specified instead of the platform or boarding area. Useful if different trips for the same route have different platforms that you want to show up in the timetable as separate stops. Defaults to `true`.
+
+```
+    "useParentStation": true
 ```
 
 ### verbose
@@ -584,7 +605,7 @@ An example of this file is located in [examples/timetables.txt](examples/timetab
 
 ### Multi-route Timetables
 
-To allow creating a single timetable for multiple routes that overlap, you can have multiple entries in `timetables.txt` for the same `timetable_id`. These multi-route entries should have the same values `timetable_id`, `start_date`, `end_date`, calendar date, `service_notes` and `orientation` fields and should have different values for the `route_id` and `timetable_label` fields.
+To allow creating a single timetable for multiple routes that overlap, you can have multiple entries in `timetables.txt` for the same `timetable_id`. All fields should be the same for each row in `timetables.txt` for a combined route timetable except `route_id`.
 
 ### Build `timetable_stop_order.txt`
 
@@ -687,7 +708,7 @@ If you want to route logs to a custom function, you can pass a function that tak
       }
     };
 
-    mongoose.connect(config.mongoUrl, { useNewUrlParser: true, useCreateIndex: true });
+    mongoose.connect(config.mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
 
     gtfsToHTML(config);
 
